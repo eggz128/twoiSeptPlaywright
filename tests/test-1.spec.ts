@@ -90,3 +90,44 @@ test('Locator Handler', async ({ page }) => {
   //If the cookie consent form appears from here on it may cause issues with the test...
   await page.waitForTimeout(5000);
 })
+
+test('actions', async({page})=>{
+  await page.goto('https://www.edgewordstraining.co.uk/webdriver2/docs/index.html');
+  await page.getByRole('link', { name: 'Forms' }).click();
+  await page.locator('#textInput').click();
+  await page.locator('#textInput').fill('Steve Powell');
+  await page.locator('#textInput').fill('Stephen Powell'); //Fill auto clears the text box before entry (no append)
+  //await page.locator('#textInput').clear(); //Manually clears the text box "by magic". 99.999% of the time that's fine.
+  await page.locator('#textInput').press('Control+KeyA'); //However you could use keyboard shortcuts to clear exactly like a user might
+  await page.locator('#textInput').press('Backspace'); 
+  await page.locator('#textInput').pressSequentially(' should append', {delay: 200}); //wont clear, just append, and will do so with slow keypresses
+  await page.locator('#textArea').click();
+  await page.locator('#textArea').fill('was\nhere\n'); //Multiline text entry - \n = new line
+  await page.locator('#checkbox').check(); //Ensure checkbox is on
+  await page.locator('#checkbox').click(); //Toggle off
+  await page.locator('#checkbox').click(); //Toggle on
+  await page.locator('#checkbox').uncheck(); //Force off
+  await page.locator('#select').selectOption('Selection Two');
+  await page.locator('#two').check(); //Also works for radio buttons
+  await expect.soft(page.locator('input[type=radio]')).toHaveCount(2); //Soft asserts fail the test but allow code execution to continue within the test
+  await expect(page.locator('input[type=radio]')).toHaveCount(3); //A (non soft) failed assertion will stop and fail the test here. The following line would not execute.
+  await page.getByRole('link', { name: 'Submit' }).click();
+});
+
+test('drag drop slider', async ({ page }) => {
+  await page.goto('https://www.edgewordstraining.co.uk/webdriver2/docs/cssXPath.html')
+
+  await page.locator('#apple').scrollIntoViewIfNeeded();
+  //Dragging 'outside' of an element normally fails due to 'actionability' checks. force:true tells Playwright just to do the action skipping any checks.
+  //await page.dragAndDrop('#slider a', '#slider a', {targetPosition: {x: 100, y:0}, force: true}) //While this moves the gripper it wont change the size of the apple - this is due to the JS on the page that does the resizing not firing properly for large movements
+  //await page.click('css=#slider a') //Old way of clicking things - stilll works but prefer page-findelement-click
+  await page.locator('#slider a').click();
+  //So instead do lots of little jumps. Just make sure that you 'jump' far enough to get 'outside' the gripper each time
+  await page.dragAndDrop('#slider a', '#slider a', { targetPosition: { x: 20, y: 0 }, force: true })
+  await page.dragAndDrop('#slider a', '#slider a', { targetPosition: { x: 20, y: 0 }, force: true })
+  await page.dragAndDrop('#slider a', '#slider a', { targetPosition: { x: 20, y: 0 }, force: true })
+  await page.dragAndDrop('#slider a', '#slider a', { targetPosition: { x: 20, y: 0 }, force: true })
+  //We should probably write a custom function for this 'lots of little jumps' drag and drop... e.g. 
+  //await smoothDrag(page, '#slider a', 200, 5); //ToDo: write this function. 200 is the distance to move, 5 is the number of "jumps"
+
+})
