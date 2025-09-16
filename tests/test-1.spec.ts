@@ -28,7 +28,7 @@ test('test2', async ({ page }) => { //PW can reuse the browser if open. It will 
 
   //In technical terms, each PW API call immediately returns a "promise" of a future action
   //await(ing) waits for the promise to finally "resolve" before continuing
-  await page.goto('https://www.edgewordstraining.co.uk/demo-site/');
+  await page.goto('demo-site/');
   await page.getByRole('searchbox', { name: 'Search for:' }).click();
   await page.getByRole('searchbox', { name: 'Search for:' }).fill('cap');
   await page.getByRole('searchbox', { name: 'Search for:' }).press('Enter');
