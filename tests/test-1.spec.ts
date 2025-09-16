@@ -109,8 +109,9 @@ test('actions', async({page})=>{
   await page.locator('#checkbox').uncheck(); //Force off
   await page.locator('#select').selectOption('Selection Two');
   await page.locator('#two').check(); //Also works for radio buttons
-  await expect.soft(page.locator('input[type=radio]')).toHaveCount(2); //Soft asserts fail the test but allow code execution to continue within the test
-  await expect(page.locator('input[type=radio]')).toHaveCount(3); //A (non soft) failed assertion will stop and fail the test here. The following line would not execute.
+  const slowExpect = await expect.configure({timeout: 10000});
+  await slowExpect.soft(page.locator('input[type=radio]')).toHaveCount(2); //Soft asserts fail the test but allow code execution to continue within the test
+  await slowExpect(page.locator('input[type=radio]')).toHaveCount(2); //A (non soft) failed assertion will stop and fail the test here. The following line would not execute.
   await page.getByRole('link', { name: 'Submit' }).click();
 });
 
@@ -131,3 +132,147 @@ test('drag drop slider', async ({ page }) => {
   //await smoothDrag(page, '#slider a', 200, 5); //ToDo: write this function. 200 is the distance to move, 5 is the number of "jumps"
 
 })
+
+
+test('assertions', async ({ page }) => {
+
+  await page.goto('https://www.edgewordstraining.co.uk/webdriver2/');
+  await page.getByRole('link', { name: 'Access Basic Examples Area' }).click();
+  await page.getByRole('link', { name: 'Forms' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Forms' })).toBeVisible();
+
+  // const slowExpect = expect.configure({timeout: 7000})
+
+  // await slowExpect.soft(page.getByRole('paragraph')).toContainText('This form has aN');
+  // await slowExpect.soft(page.locator('#textInput')).toHaveValue('Steve Powell');
+  //
+  // //ARIA Snapshots let you verify the accessibility tree hasn't changed (because the site has been refactored)
+  // //They say *nothing* of if it's a *good* and useful accessibility tree
+  //
+  // //The accessibility tree is essentially what screenreaders and other assistance tools use 
+  // await expect(page.locator('#right-column')).toMatchAriaSnapshot(`
+  //   - heading "Forms" [level=1]
+  //   - paragraph: This form has an id of theForm.
+  //   - table:
+  //     - rowgroup:
+  //       - row "Text Input with id/name textInput * Steve Powell":
+  //         - cell "Text Input with id/name textInput *"
+  //         - cell "Steve Powell":
+  //           - textbox: Steve Powell
+  //       - row "Text Area with id/name textArea":
+  //         - cell "Text Area with id/name textArea"
+  //         - cell:
+  //           - textbox
+  //       - row "Checkbox with id/name checkbox":
+  //         - cell "Checkbox with id/name checkbox"
+  //         - cell:
+  //           - checkbox
+  //       - row "Select with id/name select Selection One":
+  //         - cell "Select with id/name select"
+  //         - cell "Selection One":
+  //           - combobox:
+  //             - option "Selection One" [selected]
+  //             - option "Selection Two"
+  //             - option "Selection Three"
+  //       - row "Radio buttons with id/name radio One Two Three":
+  //         - cell "Radio buttons with id/name radio"
+  //         - cell "One Two Three":
+  //           - radio [checked]
+  //           - radio
+  //           - radio
+  //       - row "Password input with id/name password":
+  //         - cell "Password input with id/name password"
+  //         - cell:
+  //           - textbox
+  //       - row "File selector with id/name file":
+  //         - cell "File selector with id/name file"
+  //         - cell:
+  //           - textbox
+  //       - row "Submit Clear":
+  //         - cell
+  //         - cell "Submit Clear":
+  //           - link "Submit"
+  //           - link "Clear"
+  //       - row "* Mandatory field.":
+  //         - cell "* Mandatory field."
+  //   `);
+
+  await expect(page).toHaveTitle("Forms");
+  await expect(page.getByRole('heading', { name: 'Forms' })).toBeVisible();
+  await expect(page.getByRole('paragraph')).toContainText(/This form has an id Of .*/i); //Substring matches - can also use RegEx
+  //await expect(page.getByRole('paragraph')).toHaveText('This form has an id of ');//exact match needed
+  await expect(page.locator('#textInput')).toBeEmpty();
+
+  await page.locator('#textInput').fill('Steve Powell');
+
+  //Will fail on first run, but will generate the "golden" sample/reference image for future runs
+  await expect(page.locator('#textInput')).toHaveScreenshot('textbox.png', { //The "golden sample" in github is a Firefox image that has been renamed and cropped to the same size as chromium produces - it should fail when the test runs with chromium
+    threshold: 0.1, //Allowable colour variance 0-1
+    maxDiffPixelRatio: 0.1, //Allowable different pixels 0-1
+    //maxDiffPixels : 100 //Exact number of pixel allowed to differ
+  }) //Will still fail regardless if the image sizes don't match
+
+  //await expect(page.locator('#textInput')).toHaveText('Steve Powell'); //NO. <input> can't have a closing tag, therefore no inner text
+  await expect(page.locator('#textInput')).toHaveValue('Steve Powell');
+
+  //toHaveText() can be used with an array against an array of elements
+  //await expect(page.locator('a.orange-button:visible'))//There's a 'hidden' orange 'button' - :visible is a PW CSS psuedo class extension
+  await expect(page.locator('a.orange-button').filter({ visible: true })) //Alternative to :visible - use filter()
+    .toHaveText(['Submit', 'Clear']);
+
+
+  
+
+  //Use Promise to evalute assertions in parallel/concurrently 
+  // const results1 = await Promise.all([
+  //   expect.soft(page.locator('#one')).toHaveValue('OneX'), //Note no await. We'll let Promise.All() wait for the promises to settle
+  //   expect.soft(page.locator('#two')).toHaveValue('Two'), //If you use await the expects will be evaluated in sequence
+  //   expect.soft(page.locator('#three')).toHaveValue('ThreeX',{timeout: 7000}) //soft expects are used so the first promise rejection (assertion failiure) doesnt immediately fail the test. **BUT** there is a race - if one assertion/promise has a longer timeout it wont be reported on as Promise.all() resolves as soon as the first rejecction takes place.
+  // ])
+  // console.log("results1", results1) //array of 3 undefined?? https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
+
+  // //Promise.all() and soft assserts do fail the test (as expected) and/but allow execution to continue... maybe not what is wanted
+
+  // const results2 = await Promise.all([ //returns as soon as one promise is rejected, so last fail not reported. Beware races.
+  //   expect(page.locator('#one')).toHaveValue('OneX'), //Note no await. We'll let Promise.All() wait for the promises to settle
+  //   expect(page.locator('#two')).toHaveValue('Two'), //If you use await the expects will be evaluated in sequence
+  //   expect(page.locator('#three')).toHaveValue('ThreeX',{timeout: 7000})
+  // ]) //no soft assert so will stop here
+  //.catch((err) => console.error(err)) //unless error is caught. Error contains details of the *first* rejected promise
+  //console.log("results2", results2)
+
+
+
+
+  //This looks the most promising
+
+  // //allSettled() will wait for the assertions to settle, and
+  // const results = await Promise.allSettled([ //returns array of objects with "status" and "reason" properties
+  //   expect(page.locator('#one')).toHaveValue('OneX'), 
+  //   expect(page.locator('#two')).toHaveValue('Two'), 
+  //   expect(page.locator('#three')).toHaveValue('ThreeX', {timeout: 7000}) 
+  // ])
+  // //However the test actually passes (unlike all() + soft asserts) and execution continues...
+  // //I guess it's up to us to decide to stop if any of the object statuses are "rejected"
+  // if (results.some((result) => result.status === 'rejected')) {
+  //   for (const result of results) {
+  //     if (result.status === 'rejected') {
+  //       console.error(`Assertion failed: ${result.reason}`);
+  //     }
+  //   }
+  //   throw new Error(`Some assertions failed`); //Not ideal reporting, but failiure messages are at least now in the reports stderr attachment 
+  // }
+
+  // console.log("Fin") //Didn't get here - good!
+
+  // const results = await Promise.allSettled([ //returns array of objects with "status" and "reason" properties
+  //   expect(page.locator('#one')).toHaveValue('OneX'), 
+  //   expect(page.locator('#two')).toHaveValue('Two'), 
+  //   expect(page.locator('#three')).toHaveValue('ThreeX', {timeout: 7000}) 
+  // ]).catch(err => console.log("caught: ", err)) //no err thrown despite rejected promise
+  // .then(results => console.log("then: ", results)) //we get the array of objects with the outcome of each promise
+  // .finally(() => console.log("finally"));
+
+  //Looks like Promise.allSettled() is the way to go - then examine the returned object and decide to stop or not (i.e. soft assert)
+});
