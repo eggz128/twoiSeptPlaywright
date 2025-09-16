@@ -28,11 +28,20 @@ test('test2', async ({ page }) => { //PW can reuse the browser if open. It will 
 
   //In technical terms, each PW API call immediately returns a "promise" of a future action
   //await(ing) waits for the promise to finally "resolve" before continuing
+
+  //No need to await locators in PW (as unlike WebDriver) - no search for element is performed here
+  const searchBox = page.getByRole('searchbox', { name: 'Search for:' });
+  
   await page.goto('demo-site/');
-  await page.getByRole('searchbox', { name: 'Search for:' }).click();
-  await page.getByRole('searchbox', { name: 'Search for:' }).fill('cap');
-  await page.getByRole('searchbox', { name: 'Search for:' }).press('Enter');
-  await page.getByRole('button', { name: 'Add to cart' }).click();
+  
+  await searchBox.click(); //When PW interacts with an element - it will do the necessary search at this time
+  await searchBox.fill('cap'); //This is when it's importnant to await
+  await searchBox.press('Enter');
+
+  //await page.getByRole('button', { name: /Add to .*/ }).click();
+  //await page.getByRole('button', { name: "Add to" }).click(); //name: does a sub string match
+  //await page.getByRole('button', { name: "ADD TO" }).click(); //also it's case insensitive
+  await page.getByRole('button', { name: "ADD TO", exact: true }).click(); //Exact (inc case) match
   await page.locator('#content').getByRole('link', { name: 'View cart ' }).click();
   await page.getByRole('link', { name: 'Remove this item' }).click();
   await page.getByRole('link', { name: 'Return to shop' }).click();
@@ -40,9 +49,44 @@ test('test2', async ({ page }) => { //PW can reuse the browser if open. It will 
 
 });
 
-
 //Be careful with "Record at cursor" - you must be in a test() methods callback function when recording
 //If you record out here you will break the file (preventing it from compiling & runnning)
 
   // await page.getByRole('link', { name: 'Remove this item' }).click();
   // await page.getByRole('link', { name: 'Return to shop' }).click();
+
+test('all products', async ({ page }) => {
+  await page.goto('https://www.edgewordstraining.co.uk/demo-site/');
+  const newProducts = page.getByLabel('Recent Products');
+  for (const prod of await newProducts.locator('h2:not(.section-title)').all()) { //gathers a collection of all() matching elements
+    console.log(await prod.textContent()); //then loops over each individual match logging the text
+  }; //No need to await console, but you do need to await the locator. Or you will only get the "promise" of the text, not the actual text.
+  
+});
+
+test('Locator Handler', async ({ page }) => {
+  // Setup the handler.
+  const cookieConsent = page.getByRole('heading', { name: 'Hej! You are in control of your cookies.' });
+  await page.addLocatorHandler(
+    cookieConsent, //Locator to watch out for
+    async () => { //If spotted, what to do
+      await page.getByRole('button', { name: 'Accept all' }).click();
+    }
+    , //Optional arguments - can be omitted
+    {
+      times: 10, //How many times the locator may appear before the handler should stop handling the locator
+      //By default Playwright will wait for the locator to no longer be visible before continuing with the test.
+      noWaitAfter: true //this can be overridden however
+    }
+  );
+
+  // Now write the test as usual. If at any time the cookie consent form is shown it will be accepted.
+  await page.goto('https://www.ikea.com/');
+  await page.getByRole('link', { name: "Let's go to Denmark!" }).click();
+  await expect(page.getByRole('heading', { name: "Let's go to Denmark!"})).toBeVisible();
+
+  //If you're confident the locator will no longer be found you can de-register the handler
+  //await page.removeLocatorHandler(cookieConsent);
+  //If the cookie consent form appears from here on it may cause issues with the test...
+  await page.waitForTimeout(5000);
+})

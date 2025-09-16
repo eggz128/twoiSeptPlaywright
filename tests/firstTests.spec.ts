@@ -16,6 +16,7 @@ test("My First Test", async ({page})=>{
 
     //To fix this we can filter down the 2 matches - in this case selecting the first (0th) match
     await page.locator("#username").nth(0).fill("edgewords") //Will also .clear()
-
+    //await page.locator("#username >> nth=1").fill("edgewords") //Alternatively using PW CSS extension - note this is now a 1 based index
+    //await page.locator("#username").filter({visible: true}).fill("edgewords"); //Using filter()
 })
 
