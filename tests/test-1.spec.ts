@@ -135,7 +135,7 @@ test('drag drop slider', async ({ page }) => {
 
 
 test('assertions', async ({ page }) => {
-
+  test.setTimeout(0); //Gives test infinite time to execute (excluding expects/assertions). Needed to debug tests in PW v1.55
   await page.goto('https://www.edgewordstraining.co.uk/webdriver2/');
   await page.getByRole('link', { name: 'Access Basic Examples Area' }).click();
   await page.getByRole('link', { name: 'Forms' }).click();
