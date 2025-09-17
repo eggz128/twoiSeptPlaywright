@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 //The callback function can request a Playwright "Fixture" - { page } in this case
-test('test', async ({ page }) => { //PW will set up a browser with a context for this test, and set up a page in that ready for us to use 
+test('test @RunMe', async ({ page }) => { //PW will set up a browser with a context for this test, and set up a page in that ready for us to use 
   // Recording...
   await page.goto('https://www.edgewordstraining.co.uk/webdriver2/');
   await page.getByRole('link', { name: 'Login To Restricted Area' }).click();
@@ -15,7 +15,7 @@ test('test', async ({ page }) => { //PW will set up a browser with a context for
 
 });
 
-test('test2', async ({ page }) => { //PW can reuse the browser if open. It will establish a new context and page for each test to use
+test('test2', {tag: ['@RunMe', '@Smoke']}, async ({ page }) => { //PW can reuse the browser if open. It will establish a new context and page for each test to use
   
   //No waits required. PW will auto wait for animations, scrolling and elements if required.
 
