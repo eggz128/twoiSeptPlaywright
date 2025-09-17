@@ -30,6 +30,10 @@ test('POM Test', async ({ page }) => {
   //Should retry using locator - is "leaking" locators back to the test "bad"? 
   await expect.soft(addRecord.heading).toHaveText('Add A Record To the DatabaseX'); 
 
+  //Problem: This won't retry
+  // expect(await addRecord.getHeading()) //Result is captured once, then compared once.
+  //       .toEqual('Add A Record To the DatabaseX');
+
   //If a getter is used to retrieve a value from a page, to make it retry use expect.poll
   expect.poll(async () => {
     const heading = await addRecord.getHeading();
@@ -41,7 +45,7 @@ test('POM Test', async ({ page }) => {
   }
   ).toEqual('Add A Record To the DatabaseX');
 
-  //To get a soft assertion:
+  //To get a soft assertion version:
   const softExpect = expect.configure({ soft: true })
   softExpect.poll(async () => {
     const heading = await addRecord.getHeading();
