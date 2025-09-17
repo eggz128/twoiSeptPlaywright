@@ -56,6 +56,9 @@ test('test2', async ({ page }) => { //PW can reuse the browser if open. It will 
   // await page.getByRole('link', { name: 'Return to shop' }).click();
 
 test('all products', async ({ page }) => {
+  //a comment
+  //another comment
+  
   await page.goto('https://www.edgewordstraining.co.uk/demo-site/');
   const newProducts = page.getByLabel('Recent Products');
   for (const prod of await newProducts.locator('h2:not(.section-title)').all()) { //gathers a collection of all() matching elements

@@ -61,6 +61,9 @@ test('Waits', async ({ page }) => {
     await page.goto('http://www.edgewordstraining.co.uk/webdriver2/');
     await page.getByRole('link', { name: 'Access Basic Examples Area' }).click();
     await page.getByRole('link', { name: 'Dynamic Content' }).click();
+
+    await page.pause();
+
     await page.locator('#delay').click();
     await page.locator('#delay').fill('10');
     await page.getByRole('link', { name: 'Load Content' }).click();
