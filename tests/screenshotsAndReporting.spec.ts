@@ -41,7 +41,7 @@ test('Screenshots and reporting', {
 
 
 test("compare runtime images", { tag: ['@ignore', '@smoke'] }, async ({ page, browserName }, testInfo) => {
-
+    test.setTimeout(0); //PW 1.55 debugging fix
     await page.goto("https://www.edgewordstraining.co.uk/webdriver2/docs/forms.html");
 
     await page.locator('#textInput').fill("Hello World"); //Set intial state

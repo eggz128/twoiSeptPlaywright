@@ -3,6 +3,7 @@ import { HomePOM } from './POMClasses/HomePagePOM';
 import { AuthPOM } from './POMClasses/AuthPagePOM';
 import { AddRecordPOM } from './POMClasses/AddRecordPOM';
 
+test.describe.configure({ mode: 'serial' });
 
 test('Traditional Test', async ({ page }) => {
   //Arrange
