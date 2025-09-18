@@ -18,6 +18,35 @@ test('Traditional Test', async ({ page }) => {
   await expect(page.locator('h1')).toContainText('Add A Record To the Database');
 });
 
+//Dont ever do this. Async/await is just "syntactic sugar" around Promises and then()
+test('Traditional Test avoiding async/await', ({ page }) => {
+  // Arrange
+  return page.goto('http://www.edgewordstraining.co.uk/webdriver2/')
+    .then(() => page.getByRole('link', { name: 'Login To Restricted Area' }).click())
+    // Act
+    .then(() => page.getByRole('row', { name: 'User Name?' }).locator('#username').click())
+    .then(() => page.getByRole('row', { name: 'User Name?' }).locator('#username').fill('edgewords'))
+    .then(() => page.locator('#password').click())
+    .then(() => page.locator('#password').fill('edgewords123'))
+    .then(() => page.getByRole('link', { name: 'Submit' }).click())
+    // Assert
+    .then(() => expect(page.locator('h1')).toContainText('Add A Record To the Database'));
+});
+
+
+test('OR Test', async ({ page }) => {
+  test.setTimeout(0); //PW 1.55 debugging bug
+  await page.goto('http://www.edgewordstraining.co.uk/webdriver2/');
+  const home = new HomePOM(page);
+  await home.loginLink.click(); //element fields are public so can be accessed like the service methods
+  const auth = new AuthPOM(page);
+  await auth.usernameField.fill("edgewords");
+  await auth.passwordField.fill("edgewords123");
+  await auth.submitBtn.click();
+  //await auth.#clearBtn(); //Note #clearNtn is not accessible - it is private. This is JS.
+  //await auth.register.click(); //Nor is register accessible when using the "private" access modified. But this is a TS feature (enforced at compile time rather than in engine at runtime)
+})
+
 test('POM Test', async ({ page }) => {
   test.setTimeout(0); //PW 1.55 debugging bug
   await page.goto('http://www.edgewordstraining.co.uk/webdriver2/');
@@ -26,9 +55,9 @@ test('POM Test', async ({ page }) => {
   const auth = new AuthPOM(page);
   await auth.login('edgewords', 'edgewords123');
   const addRecord = new AddRecordPOM(page);
-  
+
   //Should retry using locator - is "leaking" locators back to the test "bad"? 
-  await expect.soft(addRecord.heading).toHaveText('Add A Record To the DatabaseX'); 
+  await expect.soft(addRecord.heading).toHaveText('Add A Record To the DatabaseX');
 
   //Problem: This won't retry
   // expect(await addRecord.getHeading()) //Result is captured once, then compared once.
@@ -57,4 +86,14 @@ test('POM Test', async ({ page }) => {
   }
   ).toEqual('Add A Record To the DatabaseX');
 
+})
+
+test('Fluid POM', async ({ page }) => {
+  test.setTimeout(0); //PW 1.55 debugging bug
+  await page.goto('http://www.edgewordstraining.co.uk/webdriver2/');
+  const home = new HomePOM(page);
+  await home.goLogin();
+  const auth = new AuthPOM(page);
+  //Ewww. There must be a better way to do this...
+  await (await (await auth.setUsername('edgewords')).setPassword('edgewords123')).submitForm();
 })
