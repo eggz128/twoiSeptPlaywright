@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { TestOptions } from './tests/my-test';
-
+export const STORAGE_STATE = 'user.json';
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -43,20 +43,37 @@ export default defineConfig<TestOptions>({
 
   /* Configure projects for major browsers */
   projects: [
+        {
+      name: 'setup',
+      testMatch: /globalsetup\.ts/,
+      teardown: 'teardown',
+      timeout: 2 * 60 * 1000,
+    },
+    {
+      name: 'teardown',
+      testMatch: /globalteardown\.ts/,
+      use: {
+        storageState: STORAGE_STATE
+      }
+    },
     {
       name: 'chromium',
       
       //testMatch: /first.*\.spec\.ts/, //Chromium should only run tests where the file starts with "first"
       use: { ...devices['Desktop Chrome'],
         person: 'Bob',
+        storageState: STORAGE_STATE
        },
+       dependencies: ['setup']
     },
 
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'],
         person: 'Sally',
+        storageState: STORAGE_STATE
        },
+       dependencies: ['setup']
     
     },
 
