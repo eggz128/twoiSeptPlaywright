@@ -12,7 +12,7 @@ test('test @RunMe', async ({ page }) => { //PW will set up a browser with a cont
   await page.getByRole('link', { name: 'Submit' }).click();
   //No need for a wait - the assertion will retry if it doesnt find the element , or it has the "wrong" text
   await expect(page.locator('h1')).toContainText('Add A Record To the Database');
-
+  //Small change to test pushes trigger CI pipeline runs
 });
 
 test('test2', {tag: ['@RunMe', '@Smoke']}, async ({ page }) => { //PW can reuse the browser if open. It will establish a new context and page for each test to use
