@@ -7,8 +7,8 @@ export class AuthPOM {
     usernameField: Locator
     passwordField: Locator
     submitBtn: Locator
-    #clearBtn: Locator //# makes this field a provate element of the class. The test wont see this.
-    private register: Locator
+    #clearBtn: Locator //# makes this field a private element of the class. The test wont see this.
+    private register: Locator //TS access modifier. Enforced by TS compiler but not at runtime.
 
     constructor(page: Page) {
         this.page = page;
