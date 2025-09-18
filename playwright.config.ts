@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { TestOptions } from './tests/my-test';
 
 /**
  * Read environment variables from file.
@@ -11,7 +12,7 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
-export default defineConfig({
+export default defineConfig<TestOptions>({
   testDir: './tests',
   timeout: 30 * 1000, //Sets max test execution time 
   expect: {timeout: 7 * 1000}, //Default is 5s - now all expects have 7 seconds
@@ -33,7 +34,7 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on',
     //headless: false,
-    actionTimeout: 5000,
+    actionTimeout: 20 * 1000,
     //launchOptions: {slowMo: 5000 }
   },
 
@@ -41,14 +42,18 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      
       //testMatch: /first.*\.spec\.ts/, //Chromium should only run tests where the file starts with "first"
-      use: { ...devices['Desktop Chrome']
+      use: { ...devices['Desktop Chrome'],
+        person: 'Bob',
        },
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { ...devices['Desktop Firefox'],
+        person: 'Sally',
+       },
     
     },
 

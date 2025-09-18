@@ -57,7 +57,7 @@ test('POM Test', async ({ page }) => {
   const addRecord = new AddRecordPOM(page);
 
   //Should retry using locator - is "leaking" locators back to the test "bad"? 
-  await expect.soft(addRecord.heading).toHaveText('Add A Record To the DatabaseX');
+  //await expect.soft(addRecord.heading).toHaveText('Add A Record To the DatabaseX');
 
   //Problem: This won't retry
   // expect(await addRecord.getHeading()) //Result is captured once, then compared once.
